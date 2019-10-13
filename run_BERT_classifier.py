@@ -42,14 +42,15 @@ from torch.utils.data.distributed import DistributedSampler
 from tqdm import tqdm, trange
 
 from pytorch_pretrained_bert.file_utils import PYTORCH_PRETRAINED_BERT_CACHE
-from pytorch_pretrained_bert.modeling import BertForSequenceClassification, BertForPreTraining, BertConfig, WEIGHTS_NAME, CONFIG_NAME
+from pytorch_pretrained_bert.modeling import BertForSequenceClassification, BertForPreTraining, BertConfig, WEIGHTS_NAME, \
+    CONFIG_NAME
 from pytorch_pretrained_bert.optimization import BertAdam, warmup_linear
 
 from utils import CuneiformCharTokenizer
 
-logging.basicConfig(format = '%(asctime)s - %(levelname)s - %(name)s -   %(message)s',
-                    datefmt = '%m/%d/%Y %H:%M:%S',
-                    level = logging.INFO)
+logging.basicConfig(format='%(asctime)s - %(levelname)s - %(name)s -   %(message)s',
+                    datefmt='%m/%d/%Y %H:%M:%S',
+                    level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
@@ -111,9 +112,10 @@ class DataProcessor(object):
                 lines.append(line)
             return lines
 
+
 class CLIProcessor(DataProcessor):
     """Processor for the Cuneiform Language Identification datasets. """
-    
+
     def get_train_examples(self, data_dir):
         """See base class."""
         examples = self._create_examples(
@@ -135,27 +137,29 @@ class CLIProcessor(DataProcessor):
 
     def get_labels(self):
         """See base class."""
-        return ["SUX", "OLB", "MPB", "STB", "NEB", "LTB", "NEA"]
+        # return ["SUX", "OLB", "MPB", "STB", "NEB", "LTB", "NEA"]
+        return ["eng", "afr", "nbl", "xho", "zul", "ssw", "nso", "sot", "tsn", "ven", "tso"]
 
     def _create_examples(self, lines, set_type, labeled=True):
         """Creates examples for the training and dev sets."""
         examples = []
         for (i, line) in enumerate(lines):
-            guid = "%s-%s" % (set_type, i)
-            text_a = line[0]
-            if labeled:
-                label = line[1]
-            else:
-                label = None
-            examples.append(
-                InputExample(guid=guid, text_a=text_a, text_b=None, label=label))
+            if len(line) > 0:
+                guid = "%s-%s" % (set_type, i)
+                text_a = line[0]
+                if labeled:
+                    label = line[1]
+                else:
+                    label = None
+                examples.append(
+                    InputExample(guid=guid, text_a=text_a, text_b=None, label=label))
         return examples
 
 
 def convert_examples_to_features(examples, label_list, max_seq_length, tokenizer):
     """Loads a data file into a list of `InputBatch`s."""
 
-    label_map = {label : i for i, label in enumerate(label_list)}
+    label_map = {label: i for i, label in enumerate(label_list)}
 
     features = []
     for (ex_index, example) in enumerate(examples):
@@ -214,7 +218,6 @@ def convert_examples_to_features(examples, label_list, max_seq_length, tokenizer
         assert len(input_mask) == max_seq_length
         assert len(segment_ids) == max_seq_length
 
-
         if example.label:
             label_id = label_map[example.label]
         else:
@@ -223,18 +226,18 @@ def convert_examples_to_features(examples, label_list, max_seq_length, tokenizer
             logger.info("*** Example ***")
             logger.info("guid: %s" % (example.guid))
             logger.info("tokens: %s" % " ".join(
-                    [str(x) for x in tokens]))
+                [str(x) for x in tokens]))
             logger.info("input_ids: %s" % " ".join([str(x) for x in input_ids]))
             logger.info("input_mask: %s" % " ".join([str(x) for x in input_mask]))
             logger.info(
-                    "segment_ids: %s" % " ".join([str(x) for x in segment_ids]))
+                "segment_ids: %s" % " ".join([str(x) for x in segment_ids]))
             logger.info("label: {} (id = {})".format(example.label, label_id))
-        
+
         features.append(
-                InputFeatures(input_ids=input_ids,
-                              input_mask=input_mask,
-                              segment_ids=segment_ids,
-                              label_id=label_id))
+            InputFeatures(input_ids=input_ids,
+                          input_mask=input_mask,
+                          segment_ids=segment_ids,
+                          label_id=label_id))
     return features
 
 
@@ -253,6 +256,7 @@ def _truncate_seq_pair(tokens_a, tokens_b, max_length):
             tokens_a.pop()
         else:
             tokens_b.pop()
+
 
 def evaluate(model, eval_dataloader, device):
     pred = []
@@ -293,7 +297,7 @@ def evaluate(model, eval_dataloader, device):
     nb_correct_by_class = defaultdict(int)
     nb_true_by_class = defaultdict(int)
     nb_pred_by_class = defaultdict(int)
-    for (x,y) in zip(gold, pred):
+    for (x, y) in zip(gold, pred):
         nb_true_by_class[x] += 1
         nb_pred_by_class[y] += 1
         if x == y:
@@ -305,7 +309,7 @@ def evaluate(model, eval_dataloader, device):
         else:
             p = nb_correct_by_class[k] / nb_pred_by_class[k]
             r = nb_correct_by_class[k] / nb_true_by_class[k]
-            f = 2 * p * r / (p+r)
+            f = 2 * p * r / (p + r)
         f_vals.append(f)
 
     # Compute (unweighted) macro-averaged f-score
@@ -313,8 +317,9 @@ def evaluate(model, eval_dataloader, device):
 
     return pred, loss, accuracy, fscore
 
+
 def save_model(model, tokenizer, output_dir):
-    # Save model 
+    # Save model
     model_to_save = model.module if hasattr(model, 'module') else model  # Only save the model itself
     output_model_file = os.path.join(output_dir, WEIGHTS_NAME)
     torch.save(model_to_save.state_dict(), output_model_file)
@@ -324,6 +329,7 @@ def save_model(model, tokenizer, output_dir):
     output_tokenizer_file = os.path.join(output_dir, "tokenizer.pkl")
     with open(output_tokenizer_file, "wb") as f:
         pickle.dump(tokenizer, f)
+
 
 def predict(model, test_dataloader, device):
     model.eval()
@@ -340,6 +346,7 @@ def predict(model, test_dataloader, device):
     model.train()
     return predictions
 
+
 def make_arg_parser(initial_parser=None):
     if initial_parser is None:
         parser = argparse.ArgumentParser()
@@ -352,9 +359,9 @@ def make_arg_parser(initial_parser=None):
                         type=str,
                         required=True,
                         help="The input data dir. Should contain files named train.txt, dev.txt, and/or test.txt, depending on whether we are doing training, evaluation or prediction.")
-    parser.add_argument("--bert_model_or_config_file", 
-                        default=None, 
-                        type=str, 
+    parser.add_argument("--bert_model_or_config_file",
+                        default=None,
+                        type=str,
                         required=True,
                         help="Directory containing pre-trained BERT model or path of configuration file (if no pre-training).")
     parser.add_argument("--task_name",
@@ -433,6 +440,7 @@ def make_arg_parser(initial_parser=None):
 
     return parser
 
+
 def main():
     parser = make_arg_parser()
     args = parser.parse_args()
@@ -449,12 +457,12 @@ def main():
     }
 
     num_labels_task = {
-        "cli": 7,
+        "cli": 11,
     }
 
     # Check whether bert_model_or_config_file is a file or directory
     if os.path.isdir(args.bert_model_or_config_file):
-        pretrained=True
+        pretrained = True
         targets = [WEIGHTS_NAME, CONFIG_NAME, "tokenizer.pkl"]
         for t in targets:
             path = os.path.join(args.bert_model_or_config_file, t)
@@ -464,7 +472,7 @@ def main():
         fp = os.path.join(args.bert_model_or_config_file, CONFIG_NAME)
         config = BertConfig(fp)
     else:
-        pretrained=False
+        pretrained = False
         config = BertConfig(args.bert_model_or_config_file)
 
     # What GPUs do we use?
@@ -489,7 +497,7 @@ def main():
     # Check some other args
     if args.gradient_accumulation_steps < 1:
         raise ValueError("Invalid gradient_accumulation_steps parameter: {}, should be >= 1".format(
-                            args.gradient_accumulation_steps))
+            args.gradient_accumulation_steps))
     args.train_batch_size = args.train_batch_size // args.gradient_accumulation_steps
     if not args.do_train and not args.do_eval and not args.do_predict:
         raise ValueError("At least one of `do_train`, `do_eval` or `do_predict` must be True.")
@@ -549,7 +557,8 @@ def main():
         try:
             from apex.parallel import DistributedDataParallel as DDP
         except ImportError:
-            raise ImportError("Please install apex from https://www.github.com/nvidia/apex to use distributed and fp16 training.")
+            raise ImportError(
+                "Please install apex from https://www.github.com/nvidia/apex to use distributed and fp16 training.")
 
         model = DDP(model)
     elif n_gpu > 1:
@@ -561,13 +570,14 @@ def main():
     optimizer_grouped_parameters = [
         {'params': [p for n, p in param_optimizer if not any(nd in n for nd in no_decay)], 'weight_decay': 0.01},
         {'params': [p for n, p in param_optimizer if any(nd in n for nd in no_decay)], 'weight_decay': 0.0}
-        ]
+    ]
     if args.fp16:
         try:
             from apex.optimizers import FP16_Optimizer
             from apex.optimizers import FusedAdam
         except ImportError:
-            raise ImportError("Please install apex from https://www.github.com/nvidia/apex to use distributed and fp16 training.")
+            raise ImportError(
+                "Please install apex from https://www.github.com/nvidia/apex to use distributed and fp16 training.")
 
         optimizer = FusedAdam(optimizer_grouped_parameters,
                               lr=args.learning_rate,
@@ -584,7 +594,6 @@ def main():
                              warmup=args.warmup_proportion,
                              t_total=num_train_optimization_steps)
 
-            
     # Get dev data
     if args.do_eval:
         eval_examples = processor.get_dev_examples(args.data_dir)
@@ -639,7 +648,7 @@ def main():
                 input_ids, input_mask, segment_ids, label_ids = batch
                 loss = model(input_ids, segment_ids, input_mask, label_ids)
                 if n_gpu > 1:
-                    loss = loss.mean() # mean() to average on multi-gpu.
+                    loss = loss.mean()  # mean() to average on multi-gpu.
                 if args.gradient_accumulation_steps > 1:
                     loss = loss / args.gradient_accumulation_steps
 
@@ -655,7 +664,8 @@ def main():
                     if args.fp16:
                         # modify learning rate with special warm up BERT uses
                         # if args.fp16 is False, BertAdam is used that handles this automatically
-                        lr_this_step = args.learning_rate * warmup_linear(global_step/num_train_optimization_steps, args.warmup_proportion)
+                        lr_this_step = args.learning_rate * warmup_linear(global_step / num_train_optimization_steps,
+                                                                          args.warmup_proportion)
                         for param_group in optimizer.param_groups:
                             param_group['lr'] = lr_this_step
                     optimizer.step()
@@ -681,7 +691,7 @@ def main():
 
             # Log
             with open(output_log_file, "a") as f:
-                f.write("\t".join(log_data)+"\n")
+                f.write("\t".join(log_data) + "\n")
 
     # Load model
     if args.do_train:
@@ -750,6 +760,7 @@ def main():
             for label_id in predictions:
                 label = label_list[label_id]
                 writer.write(label + "\n")
+
 
 if __name__ == "__main__":
     main()

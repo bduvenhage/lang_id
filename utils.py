@@ -1,4 +1,5 @@
-CUNEIFORM_CHARS = [chr(x) for x in range(73728, 75088)]
+CUNEIFORM_CHARS = set()  # [chr(x) for x in range(73728, 75088)]
+
 
 class CuneiformCharTokenizer():
     def __init__(self, training_data=None):
@@ -10,11 +11,20 @@ class CuneiformCharTokenizer():
 
         """
         self.vocab = self._init_vocab()
-        for i,char in enumerate(CUNEIFORM_CHARS):
+
+        print("Creating new vocab from training data...", flush=True, end='')
+        if training_data:
+            for text in training_data:
+                for char in text:
+                    if char not in CUNEIFORM_CHARS:
+                        CUNEIFORM_CHARS.add(char)
+        print("done.")
+
+        for i, char in enumerate(CUNEIFORM_CHARS):
             self.vocab[char] = len(self.vocab)
         self.char2count = None
         if training_data:
-            self.char2count = {k:0 for k in self.vocab}
+            self.char2count = {k: 0 for k in self.vocab}
             for text in training_data:
                 for char in text:
                     if char not in self.vocab:
@@ -47,10 +57,9 @@ class CuneiformCharTokenizer():
 
     def tokenize(self, chars):
         return [c if c in self.vocab else "[UNK]" for c in chars]
-    
+
     def convert_tokens_to_ids(self, chars):
         return [self.vocab[c] if c in self.vocab else self.vocab["[UNK]"] for c in chars]
-    
 
 
 def load_labeled_data(path):
@@ -61,7 +70,7 @@ def load_labeled_data(path):
         for line in f:
             line = line.strip()
             if len(line):
-                 text, label = line.split("\t")
-                 texts.append(text)
-                 labels.append(label)
+                text, label = line.split("\t")
+                texts.append(text)
+                labels.append(label)
     return texts, labels
