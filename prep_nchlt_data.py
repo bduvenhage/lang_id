@@ -73,27 +73,27 @@ def save_sentences(filename: str, labelled_sentences: List[Tuple[str, str]]) -> 
         for sentence, label in labelled_sentences:
             f.write(f"{sentence}\t{label}\n")
 
-sent_list_afr = load_sentences_nchlt("/content/feersum-lid-shared-task/data/afr/improved_afr.txt",
+sent_list_afr = load_sentences_nchlt("../feersum-lid-shared-task/data/afr/improved_afr.txt",
                                "afr")
-sent_list_eng = load_sentences_nchlt("/content/feersum-lid-shared-task/data/eng/improved_eng.txt",
+sent_list_eng = load_sentences_nchlt("../feersum-lid-shared-task/data/eng/improved_eng.txt",
                                "eng")
-sent_list_nbl = load_sentences_nchlt("/content/feersum-lid-shared-task/data/nbl/improved_nbl.txt",
+sent_list_nbl = load_sentences_nchlt("../feersum-lid-shared-task/data/nbl/improved_nbl.txt",
                                "nbl")
-sent_list_xho = load_sentences_nchlt("/content/feersum-lid-shared-task/data/xho/improved_xho.txt",
+sent_list_xho = load_sentences_nchlt("../feersum-lid-shared-task/data/xho/improved_xho.txt",
                                "xho")
-sent_list_zul = load_sentences_nchlt("/content/feersum-lid-shared-task/data/zul/improved_zul.txt",
+sent_list_zul = load_sentences_nchlt("../feersum-lid-shared-task/data/zul/improved_zul.txt",
                                "zul")
-sent_list_nso = load_sentences_nchlt("/content/feersum-lid-shared-task/data/nso/improved_nso.txt",
+sent_list_nso = load_sentences_nchlt("../feersum-lid-shared-task/data/nso/improved_nso.txt",
                                "nso")
-sent_list_sot = load_sentences_nchlt("/content/feersum-lid-shared-task/data/sot/improved_sot.txt",
+sent_list_sot = load_sentences_nchlt("../feersum-lid-shared-task/data/sot/improved_sot.txt",
                                "sot")
-sent_list_tsn = load_sentences_nchlt("/content/feersum-lid-shared-task/data/tsn/improved_tsn.txt",
+sent_list_tsn = load_sentences_nchlt("../feersum-lid-shared-task/data/tsn/improved_tsn.txt",
                                "tsn")
-sent_list_ssw = load_sentences_nchlt("/content/feersum-lid-shared-task/data/ssw/improved_ssw.txt",
+sent_list_ssw = load_sentences_nchlt("../feersum-lid-shared-task/data/ssw/improved_ssw.txt",
                                "ssw")
-sent_list_ven = load_sentences_nchlt("/content/feersum-lid-shared-task/data/ven/improved_ven.txt",
+sent_list_ven = load_sentences_nchlt("../feersum-lid-shared-task/data/ven/improved_ven.txt",
                                "ven")
-sent_list_tso = load_sentences_nchlt("/content/feersum-lid-shared-task/data/tso/improved_tso.txt",
+sent_list_tso = load_sentences_nchlt("../feersum-lid-shared-task/data/tso/improved_tso.txt",
                                "tso")
 
 random.shuffle(sent_list_afr)
@@ -157,6 +157,6 @@ random.shuffle(sent_list_test)
 
 sent_list_test_shortened = shorten_sentences(sent_list_test, 15)
 
-save_sentences("/content/nchlt_train.txt", sent_list_train)
-save_sentences("/content/nchlt_test.txt", sent_list_test)
+save_sentences("../nchlt_train.txt", sent_list_train)
+save_sentences("../nchlt_test.txt", sent_list_test)
 
