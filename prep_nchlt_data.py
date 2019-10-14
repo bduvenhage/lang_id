@@ -68,10 +68,17 @@ def load_sentences_nchlt(filename: str, label: str) -> List[Tuple[str, str]]:
 
 
 def save_sentences(filename: str, labelled_sentences: List[Tuple[str, str]]) -> None:
+    line_count = 0
+
     with open(filename, 'wt') as f:
         print("Saving sentences to", filename)
         for sentence, label in labelled_sentences:
-            f.write(f"{sentence}\t{label}\n")
+            # Write line-ends after lines, but not after the last line.
+            if line_count > 0:
+                f.write("\n")
+
+            f.write(f"{sentence}\t{label}")
+            line_count = line_count + 1
 
 
 sent_list_afr = load_sentences_nchlt("../feersum-lid-shared-task/data/afr/improved_afr.txt",
