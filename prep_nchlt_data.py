@@ -54,15 +54,15 @@ def load_sentences_nchlt(filename: str, label: str) -> List[Tuple[str, str]]:
             if not line.startswith("<fn"):
                 text = cleanup_text(line.strip())
 
-                # if text != '':
-                if 200 < len(text) < 300:
-                    text_end_i = len(text)  # 30
+                if text != '':
+                    if 200 < len(text) < 300:
+                        text_end_i = len(text)  # 30
 
-                    while (text_end_i < len(text)) and (text[text_end_i] != ' '):
-                        text_end_i += 1
+                        while (text_end_i < len(text)) and (text[text_end_i] != ' '):
+                            text_end_i += 1
 
-                    sent_list.append((text[:text_end_i], label))
-                    # sent_list.append((text, label))
+                        sent_list.append((text[:text_end_i], label))
+                        # sent_list.append((text, label))
 
     return sent_list
 
@@ -72,6 +72,7 @@ def save_sentences(filename: str, labelled_sentences: List[Tuple[str, str]]) -> 
         print("Saving sentences to", filename)
         for sentence, label in labelled_sentences:
             f.write(f"{sentence}\t{label}\n")
+
 
 sent_list_afr = load_sentences_nchlt("../feersum-lid-shared-task/data/afr/improved_afr.txt",
                                "afr")
